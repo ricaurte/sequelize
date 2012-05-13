@@ -49,7 +49,21 @@ var createMigrationsFolder = function(force) {
 
 var readConfig = function() {
   try {
-    return JSON.parse(fs.readFileSync(configFile))
+    /* setting DATABASE_URL is the standard way for Heroku to link to a database */
+    if (process.env.DATABASE_URL) {
+      var regex = /^([a-z]+):\/\/([\w\-]+):([\w\-]+)@([\w\-\.]+)\/([\w\-]+)$/;
+      var matches = process.env.DATABASE_URL.match(regex);
+      return {
+        dialect: matches[1],
+        username: matches[2],
+        password: matches[3],
+        host: matches[4],
+        database: matches[5]
+      }
+    }
+    else {
+      return JSON.parse(fs.readFileSync(configFile))
+    }
   } catch(e) {
     throw new Error('The config.json is not available or contains invalid JSON.')
   }
